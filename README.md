@@ -8,7 +8,7 @@
 
 * 🌐 **Live Deployed Application:** [https://welfare-scheme-and-complaint.vercel.app/](https://welfare-scheme-and-complaint.vercel.app/)
 * 📊 **PPT Presentation Link:** [https://canva.link/ct3s6lcd6i750yx](https://canva.link/ct3s6lcd6i750yx)
-* 🎥 **Video Demo Link:** `[Video Demo Link - Coming Soon]`
+* 🎥 **Video Demo Link:** https://www.loom.com/share/2a071e325b8c4e4bb9f1087e044c9e01
 
 ---
 
