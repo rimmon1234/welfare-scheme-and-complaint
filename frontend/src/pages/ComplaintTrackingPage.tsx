@@ -51,11 +51,10 @@ function getStageIndex(status: string): number {
   if (norm === 'OPEN' || norm === 'SUBMITTED') return 0;
   if (norm === 'PENDING' || norm === 'ACKNOWLEDGED') return 1;
   if (norm === 'ASSIGNED' || norm === 'DEPARTMENT_ASSIGNED') return 2;
-  if (norm === 'IN_PROGRESS' || norm === 'INVESTIGATION_IN_PROGRESS' || norm === 'MORE_INFO_REQUIRED') return 3;
+  if (norm === 'IN_PROGRESS' || norm === 'INVESTIGATION_IN_PROGRESS' || norm === 'MORE_INFO_REQUIRED' || norm === 'REOPENED' || norm === 'ESCALATED') return 3;
   if (norm === 'ACTION_TAKEN') return 4;
   if (norm === 'RESOLVED') return 5;
   if (norm === 'CLOSED') return 6;
-  if (norm === 'REOPENED') return 3;
   return 0;
 }
 
@@ -105,6 +104,7 @@ export function ComplaintTrackingPage({
             if (!list.some((item) => item.ref === refCode)) {
               list.push({
                 ref: refCode,
+                trackingPin: (sc as any).trackingPin,
                 title: sc.title,
                 category: sc.category,
                 status: sc.status,
@@ -132,13 +132,16 @@ export function ComplaintTrackingPage({
     if (refParam) {
       setRefInput(refParam);
       if (pinParam) setPinInput(pinParam);
-      handleTrack(refParam, pinParam || undefined);
+      handleTrack(refParam, pinParam || '');
     }
   }, [initialRef]);
 
   async function handleTrack(rId?: string, pVal?: string) {
-    const targetRef = rId || refInput;
+    const targetRef = rId !== undefined ? rId : refInput;
     const targetPin = pVal !== undefined ? pVal : pinInput;
+    if (rId !== undefined) setRefInput(rId);
+    if (pVal !== undefined) setPinInput(pVal);
+
     if (!targetRef.trim()) {
       setError('Please enter a Reference ID (e.g. SR-8K29F4).');
       return;

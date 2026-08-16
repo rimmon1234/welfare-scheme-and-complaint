@@ -182,22 +182,26 @@ export function AdminComplaintsPage({
   );
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    const norm = (status || '').toUpperCase();
+    switch (norm) {
       case 'OPEN':
+      case 'SUBMITTED':
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/15 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-400">
             <AlertCircle className="h-3.5 w-3.5" />
-            Open (New)
+            Submitted
           </span>
         );
       case 'PENDING':
+      case 'ACKNOWLEDGED':
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-navy/10 px-3 py-1 text-xs font-semibold text-brand-navy dark:bg-brand-navy/40 dark:text-[#f2f0ec]">
             <AlertCircle className="h-3.5 w-3.5" />
-            Pending
+            Acknowledged
           </span>
         );
       case 'ASSIGNED':
+      case 'DEPARTMENT_ASSIGNED':
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/15 px-3 py-1 text-xs font-semibold text-purple-700 dark:text-purple-400">
             <Clock className="h-3.5 w-3.5" />
@@ -205,10 +209,20 @@ export function AdminComplaintsPage({
           </span>
         );
       case 'IN_PROGRESS':
+      case 'INVESTIGATION_IN_PROGRESS':
+      case 'REOPENED':
+      case 'MORE_INFO_REQUIRED':
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange/15 px-3 py-1 text-xs font-semibold text-[#b06a34] dark:text-[#f0a468]">
             <Clock className="h-3.5 w-3.5" />
-            In Progress
+            {norm === 'REOPENED' ? 'Reopened' : norm === 'MORE_INFO_REQUIRED' ? 'Action Needed' : 'In Progress'}
+          </span>
+        );
+      case 'ACTION_TAKEN':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Action Taken
           </span>
         );
       case 'RESOLVED':
@@ -665,7 +679,7 @@ export function AdminComplaintsPage({
                       <td className="px-6 py-4 text-right">
                         <button
                           type="button"
-                          onClick={() => onNavigate(`/admin/complaints/${comp.ref || comp.id}`)}
+                          onClick={() => onNavigate(`/admin/complaints/${comp.ref || comp.id}${demo ? '?demo=1' : ''}`)}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-border-subtle bg-surface px-3 py-1.5 text-xs font-semibold text-ink-700 shadow-soft transition-all hover:border-brand-orange hover:text-brand-orange focus-visible:outline-2 focus-visible:outline-brand-orange"
                         >
                           <Eye className="h-3.5 w-3.5" />

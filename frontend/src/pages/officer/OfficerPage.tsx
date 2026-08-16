@@ -1,10 +1,11 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 import {
   officerStats,
   officerQueue,
   officerCases,
   type OfficerQueueItem,
+  type Complaint,
 } from '../../data'
 import { gsap, useGSAP } from '../../lib/animations'
 import { useReveal } from '../../hooks/useReveal'
@@ -13,6 +14,9 @@ import { CARD_COLORS } from '../../components/SchemeCard'
 import { ListRow } from '../../components/ListRow'
 import { ILLUSTRATIONS } from '../../components/illustrations'
 import { ComplaintRow } from '../../components/ComplaintRow'
+import { ComplaintDetailModal } from '../../components/ComplaintDetailModal'
+import { detailFromDisplay } from '../../utils/complaints'
+import type { MyComplaint } from '../../services/api'
 
 /**
  * Officer desk — the staff-side glimpse of SevaNest, built strictly on the
@@ -24,6 +28,20 @@ export function OfficerPage() {
   const queueScope = useReveal<HTMLElement>()
   const logScope = useReveal<HTMLElement>()
   const { identity } = useAuth()
+  const [selectedComplaint, setSelectedComplaint] = useState<MyComplaint | null>(null)
+
+  const openComplaintModal = (item: { id: string; ref: string; title: string; location: string; status?: string }) => {
+    const mockComplaint: Complaint = {
+      id: item.id,
+      ref: item.ref,
+      title: item.title,
+      location: item.location,
+      time: 'today',
+      status: (item.status as any) || 'Under review',
+      days: 2,
+    }
+    setSelectedComplaint(detailFromDisplay(mockComplaint))
+  }
 
   /* Signature entrance (Animations.md §3.1 pattern, mirror of the citizen
      hero): eyebrow → greeting → subtext → stat pills → SLA card, then the
@@ -151,7 +169,7 @@ export function OfficerPage() {
           </div>
 
           <div data-officer="sla">
-            <ServiceWindowCard />
+            <ServiceWindowCard onReview={() => openComplaintModal({ id: 'q1', ref: 'SR-1041', title: 'Water supply disruption', location: 'Durganagar, Block B', status: 'Under review' })} />
           </div>
         </div>
       </section>
@@ -177,7 +195,7 @@ export function OfficerPage() {
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5 max-md:mt-4 max-md:flex max-md:flex-col max-md:gap-0 max-md:overflow-hidden max-md:rounded-2xl max-md:border max-md:border-border-subtle max-md:bg-surface max-md:divide-y max-md:divide-border-subtle">
           {officerQueue.map((item) => (
             <div data-reveal key={item.id}>
-              <QueueCard item={item} />
+              <QueueCard item={item} onClick={() => openComplaintModal(item)} />
               <div className="md:hidden">
                 <ListRow
                   tileClass={CARD_COLORS[item.color]}
@@ -185,6 +203,7 @@ export function OfficerPage() {
                   title={item.title}
                   meta={`${item.ref} · ${item.location}`}
                   chip={{ label: item.due, tone: 'orange' }}
+                  onClick={() => openComplaintModal(item)}
                 />
               </div>
             </div>
@@ -213,18 +232,25 @@ export function OfficerPage() {
         <ul className="mt-5 flex flex-col gap-3 max-md:mt-4 max-md:gap-0 max-md:overflow-hidden max-md:rounded-2xl max-md:border max-md:border-border-subtle max-md:bg-surface max-md:divide-y max-md:divide-border-subtle">
           {officerCases.map((c) => (
             <li data-reveal key={c.id}>
-              <ComplaintRow complaint={c} />
+              <ComplaintRow complaint={c} onClick={() => openComplaintModal(c)} />
             </li>
           ))}
         </ul>
       </section>
+
+      {selectedComplaint && (
+        <ComplaintDetailModal
+          complaint={selectedComplaint}
+          onClose={() => setSelectedComplaint(null)}
+        />
+      )}
     </>
   )
 }
 
 /* ── Next escalation card — the GuideCard motif (design.md §7) telling the
    officer which report is closest to the 7-day deadline ─────────────── */
-function ServiceWindowCard() {
+function ServiceWindowCard({ onReview }: { onReview?: () => void }) {
   const scope = useRef<HTMLDivElement>(null)
 
   /* Same orchestration as the citizen GuideCard: spiral flourish draws
@@ -340,7 +366,10 @@ function ServiceWindowCard() {
         Day 6 of 7 — escalates to the district desk tomorrow if unresolved.
       </p>
 
-      <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-brand-navy px-5 py-3 text-[13px] font-semibold uppercase tracking-[0.04em] text-navy-contrast transition-colors duration-150 hover:bg-[#2d2839] dark:hover:bg-[#d9d5cd] focus-visible:outline-2 focus-visible:outline-brand-orange max-md:mt-4 max-md:py-2.5 max-md:normal-case max-md:tracking-normal">
+      <button
+        onClick={onReview}
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-brand-navy px-5 py-3 text-[13px] font-semibold uppercase tracking-[0.04em] text-navy-contrast transition-colors duration-150 hover:bg-[#2d2839] dark:hover:bg-[#d9d5cd] focus-visible:outline-2 focus-visible:outline-brand-orange max-md:mt-4 max-md:py-2.5 max-md:normal-case max-md:tracking-normal"
+      >
         Review SR-1041
         <ArrowRight className="h-4 w-4" strokeWidth={2} />
       </button>
@@ -350,10 +379,11 @@ function ServiceWindowCard() {
 
 /* ── Desk queue card — SchemeCard pattern (design.md §7) with a due-day
    pill standing in for the eligibility chip ─────────────────────────── */
-function QueueCard({ item }: { item: OfficerQueueItem }) {
+function QueueCard({ item, onClick }: { item: OfficerQueueItem; onClick?: () => void }) {
   const Illustration = ILLUSTRATIONS[item.illustration]
   return (
     <button
+      onClick={onClick}
       className={`group relative flex h-full w-full min-h-44 flex-col overflow-hidden rounded-2xl p-6 text-left transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lift focus-visible:outline-2 focus-visible:outline-brand-orange ${CARD_COLORS[item.color]} max-md:hidden`}
     >
       <span className="self-start rounded-full bg-white/25 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">

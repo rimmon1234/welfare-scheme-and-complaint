@@ -518,12 +518,14 @@ export async function getComplaints(req, res) {
       const whereClause = {};
 
       if (statusFilter && statusFilter !== 'ALL') {
-        if (statusFilter === 'OPEN') {
-          whereClause.status = 'OPEN';
-        } else if (statusFilter === 'PENDING') {
-          whereClause.status = { in: ['OPEN', 'PENDING'] };
-        } else if (statusFilter === 'IN_PROGRESS') {
-          whereClause.status = { in: ['ASSIGNED', 'IN_PROGRESS'] };
+        if (statusFilter === 'OPEN' || statusFilter === 'SUBMITTED') {
+          whereClause.status = { in: ['OPEN', 'SUBMITTED'] };
+        } else if (statusFilter === 'PENDING' || statusFilter === 'ACKNOWLEDGED') {
+          whereClause.status = { in: ['OPEN', 'SUBMITTED', 'PENDING', 'ACKNOWLEDGED'] };
+        } else if (statusFilter === 'ASSIGNED' || statusFilter === 'DEPARTMENT_ASSIGNED') {
+          whereClause.status = { in: ['ASSIGNED', 'DEPARTMENT_ASSIGNED'] };
+        } else if (statusFilter === 'IN_PROGRESS' || statusFilter === 'INVESTIGATION_IN_PROGRESS') {
+          whereClause.status = { in: ['ASSIGNED', 'DEPARTMENT_ASSIGNED', 'IN_PROGRESS', 'INVESTIGATION_IN_PROGRESS', 'MORE_INFO_REQUIRED', 'REOPENED', 'ACTION_TAKEN'] };
         } else if (statusFilter === 'RESOLVED') {
           whereClause.status = { in: ['RESOLVED', 'CLOSED'] };
         } else {

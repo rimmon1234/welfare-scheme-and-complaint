@@ -1,18 +1,23 @@
 import { GoogleGenAI, Type } from '@google/genai';
 
 const CATEGORIES = {
-  POTHOLE: { category: 'pothole', categoryLabel: 'Pothole / Road Damage', evidenceRequired: true, priority: 'medium' },
-  ONLINE_HARASSMENT: { category: 'online-harassment', categoryLabel: 'Online Harassment', evidenceRequired: true, priority: 'high' },
-  OFFLINE_HARASSMENT: { category: 'offline-harassment', categoryLabel: 'Offline Harassment', evidenceRequired: false, priority: 'high' },
-  PUBLIC_PROPERTY_DAMAGE: { category: 'public-property-damage', categoryLabel: 'Public Property Damage', evidenceRequired: true, priority: 'medium' },
-  PUBLIC_SAFETY: { category: 'public-safety', categoryLabel: 'Public Safety', evidenceRequired: false, priority: 'critical' },
-  WASTE: { category: 'waste', categoryLabel: 'Waste Management', evidenceRequired: false, priority: 'medium' },
-  WATER: { category: 'water', categoryLabel: 'Water Supply', evidenceRequired: false, priority: 'medium' },
-  STREET_LIGHT: { category: 'street-light', categoryLabel: 'Street Lighting', evidenceRequired: false, priority: 'medium' },
-  ELECTRICITY: { category: 'electricity', categoryLabel: 'Electricity', evidenceRequired: false, priority: 'high' },
-  NOISE_DISTURBANCE: { category: 'noise-disturbance', categoryLabel: 'Noise Disturbance', evidenceRequired: false, priority: 'medium' },
-  STRAY_ANIMALS: { category: 'stray-animals', categoryLabel: 'Stray Animals', evidenceRequired: false, priority: 'medium' },
-  OTHER: { category: 'other', categoryLabel: 'Other', evidenceRequired: false, priority: 'low' },
+  POTHOLE: { category: 'ROADS', categoryLabel: 'Pothole / Road Damage', evidenceRequired: true, priority: 'medium' },
+  ROADS: { category: 'ROADS', categoryLabel: 'Public Works & Roads', evidenceRequired: true, priority: 'medium' },
+  ONLINE_HARASSMENT: { category: 'PUBLIC_HEALTH', categoryLabel: 'Online Harassment', evidenceRequired: true, priority: 'high' },
+  OFFLINE_HARASSMENT: { category: 'PUBLIC_HEALTH', categoryLabel: 'Offline Harassment', evidenceRequired: false, priority: 'high' },
+  PUBLIC_PROPERTY_DAMAGE: { category: 'ROADS', categoryLabel: 'Public Property Damage', evidenceRequired: true, priority: 'medium' },
+  PUBLIC_SAFETY: { category: 'PUBLIC_HEALTH', categoryLabel: 'Public Safety', evidenceRequired: false, priority: 'critical' },
+  WASTE: { category: 'SANITATION', categoryLabel: 'Waste Management', evidenceRequired: false, priority: 'medium' },
+  SANITATION: { category: 'SANITATION', categoryLabel: 'Sanitation & Waste', evidenceRequired: false, priority: 'medium' },
+  WATER: { category: 'WATER_SUPPLY', categoryLabel: 'Water Supply', evidenceRequired: false, priority: 'medium' },
+  WATER_SUPPLY: { category: 'WATER_SUPPLY', categoryLabel: 'Water Supply & Drainage', evidenceRequired: false, priority: 'medium' },
+  STREET_LIGHT: { category: 'ELECTRICITY', categoryLabel: 'Street Lighting', evidenceRequired: false, priority: 'medium' },
+  ELECTRICITY: { category: 'ELECTRICITY', categoryLabel: 'Electricity & Power', evidenceRequired: false, priority: 'high' },
+  FOOD_RATION: { category: 'FOOD_RATION', categoryLabel: 'Food & Civil Supplies', evidenceRequired: false, priority: 'medium' },
+  PUBLIC_HEALTH: { category: 'PUBLIC_HEALTH', categoryLabel: 'Public Health & Education', evidenceRequired: false, priority: 'medium' },
+  NOISE_DISTURBANCE: { category: 'OTHER', categoryLabel: 'Noise Disturbance', evidenceRequired: false, priority: 'medium' },
+  STRAY_ANIMALS: { category: 'OTHER', categoryLabel: 'Stray Animals', evidenceRequired: false, priority: 'medium' },
+  OTHER: { category: 'OTHER', categoryLabel: 'Other Concern', evidenceRequired: false, priority: 'low' },
 };
 
 /** Returns null when Gemini is not configured or unavailable so the client can use local matching. */

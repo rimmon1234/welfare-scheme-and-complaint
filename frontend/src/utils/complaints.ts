@@ -7,14 +7,21 @@ const DB_STATUS_DISPLAY: Record<string, Status> = {
   RESOLVED: 'Resolved',
   CLOSED: 'Resolved',
   OPEN: 'Open',
+  SUBMITTED: 'Open',
   PENDING: 'Under review',
+  ACKNOWLEDGED: 'Under review',
   ASSIGNED: 'Under review',
+  DEPARTMENT_ASSIGNED: 'Under review',
   IN_PROGRESS: 'Under review',
+  INVESTIGATION_IN_PROGRESS: 'Under review',
+  MORE_INFO_REQUIRED: 'Under review',
+  REOPENED: 'Under review',
+  ACTION_TAKEN: 'Under review',
   ESCALATED: 'Under review',
 }
 
 export function displayStatus(dbStatus: string): Status {
-  return DB_STATUS_DISPLAY[dbStatus] ?? 'Open'
+  return DB_STATUS_DISPLAY[(dbStatus || '').toUpperCase()] ?? 'Open'
 }
 
 /** "today" / "yesterday" / "n days ago" from an ISO timestamp. */
@@ -53,25 +60,65 @@ const DISPLAY_TO_DB_STATUS: Record<Status, string> = {
   Open: 'OPEN',
 }
 
-/** Builds a minimal backend-shaped record from a display complaint. Used in
+/** Demo details lookup dictionary for guest mode complaints */
+const DEMO_DETAILS: Record<string, Partial<MyComplaint>> = {
+  'SR-1038': {
+    description: 'Streetlights non-functional along College Road stretch in Ward 12, causing safety concerns for night commuters.',
+    category: 'ELECTRICITY',
+    priority: 'MEDIUM',
+    assignedDepartment: { id: 'dept-4', name: 'Electricity & Lighting', code: 'ELE' },
+    assignedOfficer: { id: 'off-2', fullName: 'Ananya Sharma', email: 'ananya.s@sevanest.gov.in' },
+    remarks: [{ id: 'r-1', remark: 'Municipal electrical team replaced 4 blown LED fixtures and tested transformer circuit.', createdAt: new Date(Date.now() - 172800000).toISOString() }],
+  },
+  'SR-1041': {
+    description: 'Pipeline leak resulting in drinking water supply disruption across Durganagar Block B. Requesting urgent repair and tanker dispatch.',
+    category: 'WATER_SUPPLY',
+    priority: 'HIGH',
+    assignedDepartment: { id: 'dept-3', name: 'Water Supply & Drainage', code: 'WSD' },
+    assignedOfficer: { id: 'off-1', fullName: 'Rajiv Das', email: 'rajiv.das@sevanest.gov.in' },
+    remarks: [{ id: 'r-2', remark: 'On-site team dispatched for main valve replacement. Temporary tanker service deployed.', createdAt: new Date(Date.now() - 86400000).toISOString() }],
+  },
+  'SR-1024': {
+    description: 'Quality verification requested for afternoon mid-day meal served at Purba Para Primary School.',
+    category: 'PUBLIC_HEALTH',
+    priority: 'MEDIUM',
+    assignedDepartment: { id: 'dept-6', name: 'Public Health & Education', code: 'PHE' },
+    assignedOfficer: { id: 'off-4', fullName: 'Sunita Paul', email: 'sunita.p@sevanest.gov.in' },
+    remarks: [{ id: 'r-3', remark: 'Health Inspector verified grain storage quality and issued compliance certificate.', createdAt: new Date(Date.now() - 259200000).toISOString() }],
+  },
+  'SR-1044': {
+    description: 'Citizen report regarding stock distribution irregularities and delay at Fuleswar Ration Depot.',
+    category: 'FOOD_RATION',
+    priority: 'HIGH',
+    assignedDepartment: { id: 'dept-5', name: 'Food & Civil Supplies', code: 'FCS' },
+    assignedOfficer: { id: 'off-1', fullName: 'Rajiv Das', email: 'rajiv.das@sevanest.gov.in' },
+    remarks: [],
+  },
+}
+
+/** Builds a detailed backend-shaped record from a display complaint. Used in
  *  guest (demo) mode, where there is no linked identity to fetch from the
- *  database, so clicking a demo card still opens a working tracking view. */
+ *  database, so clicking a demo card still opens a full working tracking view. */
 export function detailFromDisplay(complaint: Complaint): MyComplaint {
   const created = new Date(Date.now() - complaint.days * 86_400_000).toISOString()
-  const status = DISPLAY_TO_DB_STATUS[complaint.status]
+  const status = DISPLAY_TO_DB_STATUS[complaint.status] || 'OPEN'
+  const demoMeta = DEMO_DETAILS[complaint.ref] || {}
+
   return {
     id: complaint.id,
     ref: complaint.ref,
     title: complaint.title,
-    description: null,
+    description: demoMeta.description || `Report recorded for ${complaint.title} at ${complaint.location}.`,
     location: complaint.location,
-    category: 'OTHER',
-    priority: 'MEDIUM',
+    category: demoMeta.category || 'OTHER',
+    priority: demoMeta.priority || (complaint.status === 'Under review' ? 'HIGH' : 'MEDIUM'),
     status,
-    isEscalated: false,
-    escalationLevel: 0,
+    isEscalated: complaint.days >= 6 && complaint.status !== 'Resolved',
+    escalationLevel: complaint.days >= 6 && complaint.status !== 'Resolved' ? 1 : 0,
     createdAt: created,
     updatedAt: created,
+    assignedDepartment: demoMeta.assignedDepartment || null,
+    assignedOfficer: demoMeta.assignedOfficer || null,
     statusHistory: [
       {
         id: `h-${complaint.id}`,
@@ -79,14 +126,14 @@ export function detailFromDisplay(complaint: Complaint): MyComplaint {
         newStatus: status,
         remark:
           complaint.status === 'Resolved'
-            ? 'Complaint resolved.'
+            ? 'Grievance officially resolved by municipal department.'
             : complaint.status === 'Under review'
-              ? 'Complaint received and under review by the assigned department.'
-              : 'Complaint filed by citizen.',
+              ? 'Grievance acknowledged and under active department investigation.'
+              : 'Grievance submitted by citizen.',
         createdAt: created,
       },
     ],
-    remarks: [],
+    remarks: demoMeta.remarks || [],
     evidence: [],
   }
 }

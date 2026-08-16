@@ -21,9 +21,16 @@ import { STATUS_STYLES } from './ComplaintRow'
 
 const DB_STATUS_LABEL: Record<string, string> = {
   OPEN: 'Open',
+  SUBMITTED: 'Submitted',
   PENDING: 'Pending',
+  ACKNOWLEDGED: 'Acknowledged',
   ASSIGNED: 'Assigned',
-  IN_PROGRESS: 'In progress',
+  DEPARTMENT_ASSIGNED: 'Department Assigned',
+  IN_PROGRESS: 'In Progress',
+  INVESTIGATION_IN_PROGRESS: 'Investigation In Progress',
+  ACTION_TAKEN: 'Action Taken',
+  REOPENED: 'Reopened',
+  MORE_INFO_REQUIRED: 'More Info Required',
   RESOLVED: 'Resolved',
   CLOSED: 'Closed',
   ESCALATED: 'Escalated',

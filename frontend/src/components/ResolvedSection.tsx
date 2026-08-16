@@ -23,7 +23,7 @@ export function ResolvedSection({
   const [selected, setSelected] = useState<MyComplaint | null>(null)
 
   const openDetail = (complaint: Complaint) => {
-    const record = details.find((d) => d.id === complaint.id)
+    const record = details.find((d) => d.id === complaint.id || d.ref === complaint.ref)
     setSelected(record ?? detailFromDisplay(complaint))
   }
 
